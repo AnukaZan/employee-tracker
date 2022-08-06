@@ -59,9 +59,9 @@ const promptUser = () =>{
         if (choice === 'Add an Employee'){
             addEmployee();
         }
-        // if (choice === 'Update an employee role'){
-        //     updateRole();
-        // }
+        if (choice === 'Update an employee role'){
+            updateEmployeeRole();
+        }
     })
 }
 
@@ -240,5 +240,53 @@ addEmployee = () => {
                 })
             })
         });
+    })
+}
+
+updateEmployeeRole = () =>{
+    const employeeSQL = `SELECT id, first_name, last_name FROM employee`;
+
+    db.query(employeeSQL, (err, result) => {
+        if (err) throw err;
+
+        const employees = result.map(({ id, first_name, last_name }) => ({ value: id, name: first_name + " " + last_name}));
+
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'whichEmployee',
+                message: 'Which employee would you like to update?',
+                choices: employees
+            }
+        ]).then(employeeResponse => {
+            const roleSQL = `SELECT id, title FROM role`;
+
+            db.query(roleSQL, (err, result) => {
+                if (err) throw err;
+        
+                const roles = result.map(({ id, title }) => ({ value: id, name: title}));
+        
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'whichRole',
+                        message: 'What is the new role for the employee?',
+                        choices: roles
+                    }
+                ]).then(response => {
+                    const SQL = `UPDATE employee SET role_id = ? WHERE id = ?`
+                    const params = [response.whichRole, employeeResponse.whichEmployee];
+    
+                    db.query(SQL, params, (err, result) => {
+                        if (err) throw err;
+
+                        console.log("Employee role has been updated");
+
+                        showEmployees();
+                    })
+                    
+                })
+            })
+        })
     })
 }
