@@ -56,9 +56,9 @@ const promptUser = () =>{
         if (choice === 'Add a Role'){
             addRole();
         }
-        // if (choice === 'Add an Employee'){
-        //     addEmployee();
-        // }
+        if (choice === 'Add an Employee'){
+            addEmployee();
+        }
         // if (choice === 'Update an employee role'){
         //     updateRole();
         // }
@@ -138,14 +138,15 @@ addRole = () => {
             type: 'input',
             name: 'salary',
             message: 'What is the salary of the role?',
-        } //need to get the updated list of roles from sql, so will make that list after the promise
+        } 
     ])
-    .then((answers) => {     
+    .then((answers) => {      //need to get the updated list of roles from sql, so will make that list after the promise
         const roleSQL = `SELECT id, name FROM department`;
 
         db.query(roleSQL, (err, result) => {
             if (err) throw err;
 
+            //map the query from department id and name into id and name
             const depts = result.map(({ id, name }) => ({ value: id, name: name}));
 
             inquirer.prompt([
@@ -156,8 +157,7 @@ addRole = () => {
                     choices: depts
                 }
             ]).then(response => {
-                const params = [answers.roleTitle, answers.salary];
-                params.push(response.dept);
+                const params = [answers.roleTitle, answers.salary, response.dept];
 
                 const sql = `INSERT INTO role (title, salary, department_id)
                 VALUES (?, ?, ?)`;
@@ -168,6 +168,75 @@ addRole = () => {
                     showRoles();
 
                     promptUser();
+                })
+            })
+        });
+    })
+}
+
+
+addEmployee = () => {
+
+    //ASK what the first name, last name
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'first_name',
+            message: 'What is the first name of the employee?',
+        },
+        {
+            type: 'input',
+            name: 'last_name',
+            message: 'What is the last name of the employee?',
+        } 
+    ])
+    .then((answers) => {    
+        //prepare SQL to show list of roles
+        const roleSQL = `SELECT id, title FROM role`;
+
+        db.query(roleSQL, (err, result) => {
+            if (err) throw err;
+
+            //map the query from roles id and name into id and name
+            const roles = result.map(({ id, title }) => ({ value: id, name: title}));
+
+            //Ask employee role
+            inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'role',
+                    message: 'What will the role of the employee be?',
+                    choices: roles
+                }
+            ]).then(response => {
+                //prepare Employee list to show in inquiry
+                const managerSQL = `SELECT id, first_name, last_name FROM employee`;
+
+                db.query(managerSQL, (err, result) => {
+                    if (err) throw err;
+        
+                    //map the query from employees
+                    const managersList = result.map(({ id, first_name, last_name }) => ({ value: id, name: first_name + " " + last_name}));
+        
+                    inquirer.prompt([
+                        {
+                            type: 'list',
+                            name: 'manager',
+                            message: 'Who is the manager of the employee?',
+                            choices: managersList
+                        }
+                    ]).then(managerChoice => {
+                        const params = [answers.first_name, answers.last_name, response.role, managerChoice.manager];
+        
+                        const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id)
+                        VALUE (?,?,?,?)`
+
+                        db.query(sql, params, (err, result) => {
+                            if (err) throw err;
+                            console.log("Employee has been added");
+                            showEmployees();
+                        })
+                    })
                 })
             })
         });
