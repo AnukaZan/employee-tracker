@@ -18,7 +18,6 @@ Developers frequently have to create interfaces that allow non-developers to eas
   ## Usage
   Run "node server to start inquirer in your terminal after downloading the necessary dependencies
    [Watch the video](https://drive.google.com/file/d/1kYAJv0Eaa5xhIjuo4IrxosUesMeJ_7Hv/view)
-     ![Employee Tracker Image](./walkthrough.webm)
 
   ## How to Contribute 
   Please refer to https://www.contributor-covenant.org/
